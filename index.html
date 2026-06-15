@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pearl — Easy-to-use Crypto Bank Super-App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        pearl: {
+                            50: '#F9FAFC',
+                            100: '#F3F4F8',
+                            200: '#E7E9F3',
+                            300: '#D5D9EA',
+                            400: '#A6ADC8',
+                            500: '#7C849B',
+                            900: '#0F111A',
+                        },
+                        iridescent: {
+                            lavender: '#E8DBFC',
+                            mint: '#E0F7F4',
+                            blue: '#E1EBFD',
+                            gold: '#FDF3E1',
+                        }
+                    },
+                    animation: {
+                        'float-slow': 'float 8s ease-in-out infinite',
+                        'float-medium': 'float 6s ease-in-out infinite',
+                        'float-fast': 'float 4s ease-in-out infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom Iridescent and Glassmorphism Styles */
+        .pearl-bg {
+            background: radial-gradient(circle at 0% 0%, #ffffff 0%, #f6f8fc 50%, #f1f4fa 100%);
+        }
+        
+        .iridescent-overlay {
+            background: linear-gradient(135deg, rgba(232, 219, 252, 0.4) 0%, rgba(224, 247, 244, 0.4) 30%, rgba(225, 235, 253, 0.4) 70%, rgba(253, 243, 225, 0.4) 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        .iridescent-text {
+            background: linear-gradient(135deg, #7C5CFC 0%, #3CD1C4 50%, #4A90E2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pearl-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04), 
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .pearl-card-dark {
+            background: rgba(15, 17, 26, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .shimmer-btn {
+            background: linear-gradient(135deg, #0F111A 0%, #1A1D2C 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.13) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            z-index: 1;
+        }
+
+        .shimmer-btn:hover::after {
+            left: 120%;
+            top: 120%;
+        }
+
+        /* Perspective and Isometric Styles */
+        .perspective-container {
+            perspective: 2000px;
+        }
+
+        .iso-left {
+            transform: rotateY(-24deg) rotateX(20deg) rotateZ(-8deg);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .iso-right {
+            transform: rotateY(24deg) rotateX(20deg) rotateZ(8deg);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .iso-left:hover {
+            transform: rotateY(-18deg) rotateX(15deg) rotateZ(-5deg) translateY(-10px);
+        }
+
+        .iso-right:hover {
+            transform: rotateY(18deg) rotateX(15deg) rotateZ(5deg) translateY(-10px);
+        }
+
+        /* Float Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .grid-bg {
+            background-image: radial-gradient(rgba(15, 17, 26, 0.03) 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+        }
+    </style>
+</head>
+<body class="pearl-bg font-sans text-slate-800 antialiased overflow-x-hidden">
+
+    <!-- Header System -->
+    <header class="sticky top-0 z-50 w-full transition-all duration-300 border-b border-white/40 bg-white/70 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-2.5 group" aria-label="Pearl Home">
+                <div class="relative w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-teal-400 p-[1.5px] shadow-sm">
+                    <div class="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+                        <div class="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 animate-pulse-slow"></div>
+                    </div>
+                </div>
+                <span class="font-display font-extrabold text-xl tracking-tight text-pearl-900">Pearl</span>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#features" class="text-sm font-medium text-slate-600 hover:text-pearl-900 transition-colors">Features</a>
+                <a href="#security" class="text-sm font-medium text-slate-600 hover:text-pearl-900 transition-colors">Security</a>
+                <a href="#market" class="text-sm font-medium text-slate-600 hover:text-pearl-900 transition-colors">Market</a>
+                <a href="#hardware" class="text-sm font-medium text-slate-600 hover:text-pearl-900 transition-colors">Pearl Key</a>
+            </nav>
+
+            <!-- Actions -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="#download" class="text-sm font-medium text-slate-700 hover:text-pearl-900 transition-colors">Sign In</a>
+                <a href="#download" class="shimmer-btn text-white text-xs font-semibold tracking-wide py-2.5 px-5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-1.5">
+                    Launch App
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-700 hover:text-pearl-900 transition-colors" aria-label="Toggle Menu">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Nav Menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-white/95 backdrop-blur-lg border-b border-slate-200/80 px-6 py-8 flex flex-col gap-6 shadow-xl transition-all duration-300">
+            <a href="#features" class="text-base font-medium text-slate-700 hover:text-pearl-900">Features</a>
+            <a href="#security" class="text-base font-medium text-slate-700 hover:text-pearl-900">Security</a>
+            <a href="#market" class="text-base font-medium text-slate-700 hover:text-pearl-900">Market</a>
+            <a href="#hardware" class="text-base font-medium text-slate-700 hover:text-pearl-900">Pearl Key</a>
+            <hr class="border-slate-100">
+            <div class="flex flex-col gap-4">
+                <a href="#download" class="text-center py-3 text-sm font-medium text-slate-700 hover:text-pearl-900 transition-colors">Sign In</a>
+                <a href="#download" class="shimmer-btn text-center text-white text-sm font-semibold tracking-wide py-3 px-5 rounded-full shadow-lg">Launch App</a>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="relative z-10">
+
+        <!-- Component 1: Hero Section -->
+        <section class="relative pt-12 pb-24 md:py-32 overflow-hidden grid-bg">
+            <!-- Iridescent Blobs -->
+            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full iridescent-overlay blur-[120px] pointer-events-none opacity-80 z-0"></div>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="flex flex-col items-center text-center max-w-4xl mx-auto">
+                    <!-- Premium Tag -->
+                    <div class="mb-6 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-slate-200/60 shadow-[0_2px_12px_rgba(0,0,0,0.02)] backdrop-blur-sm animate-float-slow">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span class="text-[11px] font-semibold tracking-wider text-slate-600 uppercase">Version 2.0 Live</span>
+                    </div>
+
+                    <!-- Main H1 -->
+                    <h1 class="font-display font-extrabold text-5xl md:text-7xl tracking-tight text-pearl-900 leading-[1.1] mb-8">
+                        Easy-to-use Crypto Bank <br>
+                        <span class="iridescent-text">Super-App</span>
+                    </h1>
+
+                    <!-- Paragraph -->
+                    <p class="text-lg md:text-xl text-slate-600 font-normal leading-relaxed max-w-2xl mb-12">
+                        Experience the next evolution of sovereign finance. Spend, save, and grow your digital assets with an iridescently beautiful, secure interface.
+                    </p>
+
+                    <!-- App Store Triggers -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-20 z-20">
+                        <!-- App Store -->
+                        <a href="#download" class="flex items-center gap-3 bg-[#0F111A] hover:bg-slate-900 text-white py-3.5 px-7 rounded-2xl shadow-lg transition-all duration-300 group" aria-label="Download on App Store">
+                            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39z"/>
+                            </svg>
+                            <div class="text-left">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Download on the</p>
+                                <p class="text-sm font-semibold -mt-0.5">App Store</p>
+                            </div>
+                        </a>
+                        <!-- Play Store -->
+                        <a href="#download" class="flex items-center gap-3 bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 py-3.5 px-7 rounded-2xl shadow-md transition-all duration-300 group" aria-label="Download on Google Play">
+                            <svg class="w-6 h-6 fill-current text-slate-800" viewBox="0 0 24 24">
+                                <path d="M3 5.277L14.485 12 3 18.723V5.277zm12.637 6.13l2.844-1.664a1.68 1.68 0 000-2.91L3.924 1.185l11.713 10.222zm3.322 1.936a1.68 1.68 0 010 2.91l-3.322-1.94 3.322-.97zM3.924 22.815l11.713-10.222-11.713 10.222z"/>
+                            </svg>
+                            <div class="text-left">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Get it on</p>
+                                <p class="text-sm font-semibold -mt-0.5">Google Play</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Symmetrical Floating Assets Container -->
+                <div class="relative w-full max-w-5xl mx-auto h-40 mt-10 pointer-events-none hidden lg:block">
+                    <!-- Left Floating Asset 1 (BTC) -->
+                    <div class="absolute -left-10 -top-20 animate-float-slow">
+                        <div class="w-24 h-24 rounded-3xl pearl-card p-4 flex flex-col justify-between shadow-xl">
+                            <div class="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
+                                <span class="text-amber-600 font-bold text-lg">₿</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400">BTC</p>
+                                <p class="text-sm font-bold text-slate-800">$64,250</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Left Floating Asset 2 (Pearl Sphere) -->
+                    <div class="absolute left-28 top-16 animate-float-medium">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-200 via-teal-100 to-indigo-200 shadow-[inset_-5px_-5px_15px_rgba(255,255,255,0.8),_0_10px_25px_rgba(0,0,0,0.05)] border border-white/50"></div>
+                    </div>
+
+                    <!-- Right Floating Asset 1 (ETH) -->
+                    <div class="absolute -right-10 -top-24 animate-float-reverse">
+                        <div class="w-24 h-24 rounded-3xl pearl-card p-4 flex flex-col justify-between shadow-xl">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center">
+                                <span class="text-indigo-600 font-bold text-lg">Ξ</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400">ETH</p>
+                                <p class="text-sm font-bold text-slate-800">$3,450</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Floating Asset 2 (Geometric Ring) -->
+                    <div class="absolute right-32 top-12 animate-spin-slow">
+                        <svg class="w-14 h-14 text-teal-400/70" viewBox="0 0 100 100" fill="none">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" stroke-dasharray="10 20" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Component 2: Overlapping Isometric Mockup Section -->
+        <section class="py-24 md:py-32 overflow-hidden bg-white relative">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                    
+                    <!-- Left Content Info -->
+                    <div class="lg:col-span-5 z-10">
+                        <h2 class="font-display font-bold text-4xl md:text-5xl text-pearl-900 tracking-tight leading-tight mb-6">
+                            Architected for the next generation of wealth.
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed mb-8">
+                            A complete banking workspace meticulously designed to manage, swap, and secure assets with unparalleled performance. Beautiful aesthetics meet institutional-grade utility.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-1">
+                                    <svg class="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <p class="text-slate-700 font-medium">Instant global yield routing engine</p>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-1">
+                                    <svg class="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <p class="text-slate-700 font-medium">Smart portfolio auto-balancing tools</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Overlapping Isometric Mockup Area -->
+                    <div class="lg:col-span-7 relative flex justify-center items-center perspective-container min-h-[500px] md:min-h-[600px] w-full">
+                        <!-- Geometric Pastel Backdrops -->
+                        <div class="absolute w-[350px] h-[350px] rounded-full bg-gradient-to-tr from-indigo-100 to-pink-100 opacity-60 blur-3xl -z-10"></div>
+                        <div class="absolute w-[280px] h-[280px] rounded-full border border-slate-200/50 -z-10"></div>
+                        <div class="absolute w-[440px] h-[440px] rounded-full border border-slate-200/30 -z-10"></div>
+
+                        <!-- Mockup 1: Left Angled Portfolio View -->
+                        <div class="absolute left-4 md:left-12 w-[250px] md:w-[280px] h-[500px] md:h-[560px] rounded-[40px] bg-slate-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-3 border-[6px] border-slate-800 iso-left z-20">
+                            <!-- Device Notch -->
+                            <div class="w-28 h-4 bg-slate-800 rounded-full mx-auto mb-4"></div>
+                            <!-- Device Screen Content -->
+                            <div class="w-full h-[calc(100%-1.5rem)] rounded-[32px] bg-slate-950 p-5 text-white overflow-hidden flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-center mb-6">
+                                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                            <span class="text-xs">👤</span>
+                                        </div>
+                                        <span class="text-xs font-semibold bg-white/10 py-1 px-3 rounded-full">Pro</span>
+                                    </div>
+                                    <p class="text-xs text-slate-400">Net Portfolio Value</p>
+                                    <h3 class="text-2xl font-bold font-display mt-1">$142,504.28</h3>
+                                    <p class="text-[11px] text-emerald-400 mt-1">↑ +14.2% this month</p>
+                                </div>
+
+                                <!-- Mini SVG Sparkline inside device -->
+                                <div class="my-4">
+                                    <svg class="w-full h-24" viewBox="0 0 100 40" preserveAspectRatio="none">
+                                        <path d="M0,30 Q15,10 30,25 T60,5 T90,20 L100,10" fill="none" stroke="#3CD1C4" stroke-width="3" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-indigo-500"></div>
+                                            <span class="text-xs font-semibold">Ethereum</span>
+                                        </div>
+                                        <span class="text-xs font-bold">$3,450</span>
+                                    </div>
+                                    <div class="bg-white/5 rounded-xl p-3 flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-emerald-500"></div>
+                                            <span class="text-xs font-semibold">Tether</span>
+                                        </div>
+                                        <span class="text-xs font-bold">$1.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mockup 2: Right Angled Swap Interface (Overlapping) -->
+                        <div class="absolute right-4 md:right-12 w-[250px] md:w-[280px] h-[500px] md:h-[560px] rounded-[40px] bg-slate-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-3 border-[6px] border-slate-800 iso-right z-10">
+                            <!-- Device Notch -->
+                            <div class="w-28 h-4 bg-slate-800 rounded-full mx-auto mb-4"></div>
+                            <!-- Device Screen Content -->
+                            <div class="w-full h-[calc(100%-1.5rem)] rounded-[32px] bg-slate-950 p-5 text-white overflow-hidden flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-center mb-6">
+                                        <span class="text-xs font-semibold">Instant Swap</span>
+                                        <span class="text-xs text-slate-400">Slippage 0.5%</span>
+                                    </div>
+
+                                    <!-- Swap Input Box 1 -->
+                                    <div class="bg-white/5 rounded-2xl p-3 mb-3">
+                                        <label class="text-[10px] text-slate-400 block mb-1">Pay</label>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-lg font-bold">1.50</span>
+                                            <span class="bg-indigo-500/20 text-indigo-300 text-xs font-bold px-2 py-1 rounded">ETH</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Swap Icon -->
+                                    <div class="w-8 h-8 rounded-full bg-teal-400 text-slate-950 mx-auto my-2 flex items-center justify-center font-bold text-lg shadow-lg">
+                                        ↓
+                                    </div>
+
+                                    <!-- Swap Input Box 2 -->
+                                    <div class="bg-white/5 rounded-2xl p-3">
+                                        <label class="text-[10px] text-slate-400 block mb-1">Receive</label>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-lg font-bold">5,175.00</span>
+                                            <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-2 py-1 rounded">USDC</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="w-full bg-gradient-to-tr from-teal-400 to-indigo-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-4">
+                                    Confirm Swap
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Component 3: Alternating Feature Rows -->
+        <section id="features" class="py-24 md:py-32 bg-slate-50 relative overflow-hidden">
+            <!-- Background Radial Lines Decor -->
+            <div class="absolute inset-0 bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
+                
+                <!-- Row A: Right-aligned Typography, Left-aligned security wireframe -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                    <!-- Left Wireframe Device -->
+                    <div class="lg:col-span-6 flex justify-center order-2 lg:order-1">
+                        <div class="relative w-full max-w-md h-[400px] flex items-center justify-center">
+                            <!-- Background Radial Tech Lines -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-72 h-72 rounded-full border border-indigo-200/50 animate-pulse-slow"></div>
+                                <div class="w-96 h-96 rounded-full border border-indigo-100/30 absolute"></div>
+                            </div>
+
+                            <!-- Minimalist Wireframe Device Outline -->
+                            <div class="relative w-64 h-[380px] rounded-[36px] border-2 border-slate-300/80 bg-white/80 shadow-2xl p-4 flex flex-col justify-between z-10 backdrop-blur-sm">
+                                <div class="w-20 h-3 bg-slate-200 rounded-full mx-auto"></div>
+                                
+                                <!-- Core Tech Visual Inside Device -->
+                                <div class="my-auto py-8 flex flex-col items-center">
+                                    <!-- Dynamic Lock Icon -->
+                                    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-400 to-indigo-500 p-[2px] shadow-lg mb-6">
+                                        <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm font-bold text-slate-800">MPC Multi-Sig Security</p>
+                                    <p class="text-[11px] text-slate-400 text-center mt-2 px-4">Threshold cryptography protects your vault seamlessly.</p>
+                                </div>
+
+                                <div class="w-full h-1 bg-slate-100 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Typography -->
+                    <div class="lg:col-span-6 order-1 lg:order-2">
+                        <span id="security" class="text-xs font-bold tracking-widest text-indigo-600 uppercase block mb-3">Institutional Shield</span>
+                        <h3 class="font-display font-bold text-3xl md:text-4xl text-pearl-900 tracking-tight mb-6">
+                            Multi-Party Computation (MPC) Custody
+                        </h3>
+                        <p class="text-slate-600 leading-relaxed mb-6">
+                            Never worry about private keys again. Pearl utilizes threshold cryptography to split key shares across multiple secure enclaves, ensuring no single point of failure exists.
+                        </p>
+                        <div class="grid grid-cols-2 gap-6 pt-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">0%</h4>
+                                <p class="text-xs text-slate-500 mt-1">Key-loss risk history</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">256-bit</h4>
+                                <p class="text-xs text-slate-500 mt-1">Military-grade encryption</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row B: Left-aligned Typography, Right-aligned circular cropped charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                    <!-- Left Typography -->
+                    <div class="lg:col-span-6">
+                        <span class="text-xs font-bold tracking-widest text-teal-600 uppercase block mb-3">Real-time Yields</span>
+                        <h3 class="font-display font-bold text-3xl md:text-4xl text-pearl-900 tracking-tight mb-6">
+                            High-Yield Automated Indexing
+                        </h3>
+                        <p class="text-slate-600 leading-relaxed mb-6">
+                            Let your assets work for you. Our auto-indexing engine sweeps idle capital into optimized yield strategies across verified DeFi protocols, keeping risk parameters tightly controlled.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3 text-sm text-slate-700 font-medium">
+                                <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span> Real-time APY tracking dashboard
+                            </li>
+                            <li class="flex items-center gap-3 text-sm text-slate-700 font-medium">
+                                <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span> Gas-optimized transaction pooling
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Right Stacked Circular Previews -->
+                    <div class="lg:col-span-6 flex justify-center relative min-h-[380px]">
+                        <!-- Main Circular Container -->
+                        <div class="relative w-72 h-72 rounded-full bg-gradient-to-tr from-teal-100 via-indigo-50 to-pink-100 p-1 shadow-2xl flex items-center justify-center my-auto">
+                            <!-- Inset UI Preview 1 -->
+                            <div class="absolute -top-6 -left-6 w-44 h-24 rounded-2xl pearl-card p-4 shadow-xl border border-white/60">
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Yield APY</p>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span class="text-2xl font-bold text-slate-800">12.4%</span>
+                                    <span class="text-xs text-emerald-500 font-bold">↑ 2.1%</span>
+                                </div>
+                            </div>
+
+                            <!-- Inset UI Preview 2 (Circular Chart) -->
+                            <div class="w-56 h-56 bg-white rounded-full p-4 flex flex-col items-center justify-center shadow-inner">
+                                <svg class="w-36 h-36 transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" stroke="#f1f5f9" stroke-width="12" fill="transparent" />
+                                    <circle cx="50" cy="50" r="40" stroke="#3CD1C4" stroke-width="12" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="75" stroke-linecap="round" />
+                                    <circle cx="50" cy="50" r="40" stroke="#6366f1" stroke-width="12" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="180" stroke-linecap="round" />
+                                </svg>
+                                <div class="absolute text-center">
+                                    <p class="text-xs text-slate-400 font-medium">Optimized</p>
+                                    <p class="text-lg font-bold text-slate-800">Diversified</p>
+                                </div>
+                            </div>
+
+                            <!-- Inset UI Preview 3 -->
+                            <div class="absolute -bottom-6 -right-6 w-40 h-24 rounded-2xl pearl-card p-4 shadow-xl border border-white/60">
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Daily Swaps</p>
+                                <p class="text-lg font-bold text-slate-800 mt-1">942,050 USDC</p>
+                                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div class="bg-indigo-500 h-full w-4/5"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Component 4: Premium Asset Matrix (Market Grid) -->
+        <section id="market" class="py-24 md:py-32 bg-white relative">
+            <div class="max-w-7xl mx-auto px-6">
+                
+                <!-- Section Header -->
+                <div class="text-center max-w-2xl mx-auto mb-16">
+                    <h2 class="font-display font-bold text-4xl text-pearl-900 tracking-tight mb-4">
+                        Supported Crypto Assets
+                    </h2>
+                    <p class="text-slate-600">
+                        Real-time pricing data and instant liquidity for major digital currencies.
+                    </p>
+                </div>
+
+                <!-- 4-Column Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Card 1: Bitcoin -->
+                    <div class="pearl-card rounded-3xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between min-h-[250px] border border-slate-200/50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center font-bold text-amber-600">₿</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Bitcoin</h4>
+                                    <span class="text-xs text-slate-400">BTC</span>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded-full">+3.42%</span>
+                        </div>
+                        
+                        <!-- Sparkline SVG -->
+                        <div class="my-6">
+                            <svg class="w-full h-12" viewBox="0 0 120 30" preserveAspectRatio="none">
+                                <path d="M0,25 Q15,5 30,20 T60,10 T90,25 T120,5" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Valuation</p>
+                                <p class="text-lg font-bold text-slate-800" id="btc-price">$64,250.00</p>
+                            </div>
+                            <button onclick="triggerBuy('Bitcoin')" class="text-xs font-bold text-slate-900 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 py-2 px-4 rounded-xl transition-colors">Buy</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Ethereum -->
+                    <div class="pearl-card rounded-3xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between min-h-[250px] border border-slate-200/50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">Ξ</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Ethereum</h4>
+                                    <span class="text-xs text-slate-400">ETH</span>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded-full">+1.85%</span>
+                        </div>
+                        
+                        <!-- Sparkline SVG -->
+                        <div class="my-6">
+                            <svg class="w-full h-12" viewBox="0 0 120 30" preserveAspectRatio="none">
+                                <path d="M0,20 Q15,10 30,25 T60,5 T90,20 T120,10" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Valuation</p>
+                                <p class="text-lg font-bold text-slate-800" id="eth-price">$3,450.00</p>
+                            </div>
+                            <button onclick="triggerBuy('Ethereum')" class="text-xs font-bold text-slate-900 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 py-2 px-4 rounded-xl transition-colors">Buy</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Solana -->
+                    <div class="pearl-card rounded-3xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between min-h-[250px] border border-slate-200/50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center font-bold text-purple-600">◎</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Solana</h4>
+                                    <span class="text-xs text-slate-400">SOL</span>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-rose-100 text-rose-700 font-bold px-2 py-1 rounded-full">-0.45%</span>
+                        </div>
+                        
+                        <!-- Sparkline SVG -->
+                        <div class="my-6">
+                            <svg class="w-full h-12" viewBox="0 0 120 30" preserveAspectRatio="none">
+                                <path d="M0,10 Q15,25 30,15 T60,25 T90,5 T120,20" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Valuation</p>
+                                <p class="text-lg font-bold text-slate-800" id="sol-price">$142.50</p>
+                            </div>
+                            <button onclick="triggerBuy('Solana')" class="text-xs font-bold text-slate-900 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 py-2 px-4 rounded-xl transition-colors">Buy</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Pearl Token -->
+                    <div class="pearl-card rounded-3xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between min-h-[250px] border border-slate-200/50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center font-bold text-teal-600">✦</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Pearl</h4>
+                                    <span class="text-xs text-slate-400">PRL</span>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded-full">+8.92%</span>
+                        </div>
+                        
+                        <!-- Sparkline SVG -->
+                        <div class="my-6">
+                            <svg class="w-full h-12" viewBox="0 0 120 30" preserveAspectRatio="none">
+                                <path d="M0,25 Q15,20 30,10 T60,15 T90,5 T120,2" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Valuation</p>
+                                <p class="text-lg font-bold text-slate-800" id="prl-price">$2.45</p>
+                            </div>
+                            <button onclick="triggerBuy('Pearl Token')" class="text-xs font-bold text-slate-900 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 py-2 px-4 rounded-xl transition-colors">Buy</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Component 5: 3D Product Showcase Divider (The Pearl Key) -->
+        <section id="hardware" class="py-24 md:py-32 bg-slate-50 relative overflow-hidden">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="pearl-card rounded-[40px] p-8 md:p-16 overflow-hidden relative border border-white/80 shadow-2xl">
+                    <!-- Background Iridescent Glow -->
+                    <div class="absolute -right-20 -top-20 w-[400px] h-[400px] rounded-full iridescent-overlay blur-[100px] pointer-events-none opacity-60"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+                        <!-- Left Info -->
+                        <div class="lg:col-span-6">
+                            <span class="text-xs font-bold tracking-widest text-indigo-600 uppercase block mb-3">Optional Cold Storage</span>
+                            <h3 class="font-display font-bold text-3xl md:text-5xl text-pearl-900 tracking-tight leading-tight mb-6">
+                                The Pearl Key. Physical, Iridescent Security.
+                            </h3>
+                            <p class="text-slate-600 leading-relaxed mb-8">
+                                Pair your Super-App with our signature hardware device. Crafted from premium aerospace alloys with an iridescent pearl finish, it brings absolute air-gapped security to your digital bank.
+                            </p>
+                            <div class="flex flex-wrap gap-4">
+                                <a href="#order" class="shimmer-btn text-white text-xs font-semibold tracking-wide py-3.5 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                                    Pre-Order Key
+                                </a>
+                                <a href="#learn" class="text-xs font-semibold text-slate-800 hover:text-indigo-600 py-3.5 px-6 rounded-full border border-slate-200 hover:border-slate-300 transition-all">
+                                    How it works
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Right 3D Render Placeholder (Pure CSS) -->
+                        <div class="lg:col-span-6 flex justify-center">
+                            <div class="relative w-80 h-52 rounded-2xl bg-gradient-to-tr from-slate-200 via-slate-100 to-indigo-100 p-0.5 shadow-2xl transform rotate-12 hover:rotate-6 transition-all duration-500 group">
+                                <!-- Metallic Iridescent Card Surface -->
+                                <div class="w-full h-full rounded-[14px] bg-gradient-to-br from-white/90 via-slate-50/70 to-teal-50/50 backdrop-blur-md p-6 flex flex-col justify-between overflow-hidden relative">
+                                    <!-- Embedded Chip Visual -->
+                                    <div class="flex justify-between items-start">
+                                        <div class="w-12 h-10 rounded-lg bg-gradient-to-tr from-yellow-300 to-amber-500 p-[1px] shadow-sm">
+                                            <div class="w-full h-full bg-slate-900/10 rounded-[7px] border border-white/20"></div>
+                                        </div>
+                                        <!-- Logo mark -->
+                                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center shadow-md">
+                                            <div class="w-3 h-3 rounded-full bg-white"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Holographic Overlay Stripe -->
+                                    <div class="absolute inset-y-0 left-1/3 w-12 bg-gradient-to-r from-transparent via-purple-300/20 to-transparent skew-x-12 group-hover:translate-x-32 transition-transform duration-1000"></div>
+
+                                    <!-- Card Info -->
+                                    <div>
+                                        <p class="text-[10px] tracking-widest text-slate-400 font-semibold uppercase">Pearl Vault Key</p>
+                                        <p class="text-sm font-semibold text-slate-800 mt-1">PEARL •••• 9024</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Component 6: Conversional Call-To-Action (CTA) -->
+        <section id="download" class="py-24 md:py-32 bg-white relative overflow-hidden">
+            <!-- Background Blob -->
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full iridescent-overlay blur-[120px] pointer-events-none opacity-40"></div>
+
+            <div class="max-w-5xl mx-auto px-6 relative z-10 text-center">
+                <h2 class="font-display font-bold text-4xl md:text-5xl text-pearl-900 tracking-tight mb-6">
+                    Join the Community
+                </h2>
+                <p class="text-slate-600 max-w-xl mx-auto mb-10">
+                    Get early access to exclusive high-yield pools, zero-fee swaps, and the physical Pearl Vault hardware drop.
+                </p>
+
+                <!-- Email Form Container -->
+                <form id="cta-form" onsubmit="handleSubscribe(event)" class="max-w-md mx-auto flex flex-col sm:flex-row gap-3 p-2 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-md">
+                    <input 
+                        type="email" 
+                        placeholder="Enter your email address" 
+                        required
+                        aria-label="Email address"
+                        class="w-full bg-transparent px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-0"
+                    >
+                    <button 
+                        type="submit" 
+                        class="shimmer-btn text-white text-xs font-semibold tracking-wide py-3 px-6 rounded-xl shadow-md shrink-0 transition-all"
+                    >
+                        Get Priority Access
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Component 7: Deep Corporate Footer -->
+    <footer class="bg-pearl-900 text-slate-400 pt-20 pb-12 relative z-10 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-6">
+            
+            <!-- Link Columns Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-12 mb-16">
+                <!-- Branding Column -->
+                <div class="col-span-2">
+                    <a href="#" class="flex items-center gap-2.5 mb-6" aria-label="Pearl Home">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-teal-400 p-[1.5px]">
+                            <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                                <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+                            </div>
+                        </div>
+                        <span class="font-display font-extrabold text-lg tracking-tight text-white">Pearl</span>
+                    </a>
+                    <p class="text-sm text-slate-400 leading-relaxed max-w-sm mb-6">
+                        Pearl is a next-generation financial technology platform, not a traditional bank. Banking services are provided by our regulated partner institutions.
+                    </p>
+                </div>
+
+                <!-- Product Links -->
+                <div>
+                    <h5 class="text-xs font-bold tracking-wider text-white uppercase mb-4">Product</h5>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#security" class="hover:text-white transition-colors">Security</a></li>
+                        <li><a href="#market" class="hover:text-white transition-colors">Markets</a></li>
+                        <li><a href="#hardware" class="hover:text-white transition-colors">Hardware</a></li>
+                    </ul>
+                </div>
+
+                <!-- Company Links -->
+                <div>
+                    <h5 class="text-xs font-bold tracking-wider text-white uppercase mb-4">Company</h5>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Press Kit</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal Links -->
+                <div>
+                    <h5 class="text-xs font-bold tracking-wider text-white uppercase mb-4">Legal</h5>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">AML Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Risk Disclosure</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="border-slate-800 mb-12">
+
+            <!-- Bottom Area -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    &copy; <span id="current-year"></span> Pearl Technologies Inc. All rights reserved.
+                </p>
+
+                <!-- Social Links -->
+                <div class="flex items-center gap-5">
+                    <a href="#" class="text-slate-500 hover:text-white transition-colors" aria-label="Pearl Twitter / X">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="#" class="text-slate-500 hover:text-white transition-colors" aria-label="Pearl Discord">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.03c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.03A19.736 19.736 0 003.67 4.37a.07.07 0 00-.034.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.094 13.094 0 01-1.873-.894.077.077 0 01-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 01.077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 01.078.009c.12.099.246.195.373.289a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.894.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z"/></svg>
+                    </a>
+                    <a href="#" class="text-slate-500 hover:text-white transition-colors" aria-label="Pearl Telegram">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.37-.49 1.03-.75 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.15-.03.22z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Toast/Modal for buy triggers -->
+    <div id="buy-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="pearl-card rounded-3xl p-8 max-w-sm w-full mx-6 border border-white/80 shadow-2xl">
+            <div class="text-center">
+                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 text-xl font-bold">✓</div>
+                <h3 class="font-display font-bold text-xl text-slate-900 mb-2">Initialize Transaction</h3>
+                <p class="text-slate-600 text-sm mb-6">You are preparing to buy <span id="modal-asset-name" class="font-semibold text-indigo-600">Asset</span> inside the Pearl environment.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeModal()" class="w-full bg-slate-100 hover:bg-slate-200/80 text-slate-800 font-semibold text-xs py-3 rounded-xl transition-colors">Cancel</button>
+                    <button onclick="confirmTransaction()" class="w-full shimmer-btn text-white font-semibold text-xs py-3 rounded-xl shadow-md">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripting for live interactions & mobile menu -->
+    <script>
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        const mobileLinks = mobileMenu.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Live Market Simulator (Subtle random fluctuations)
+        const assetPrices = {
+            btc: 64250.00,
+            eth: 3450.00,
+            sol: 142.50,
+            prl: 2.45
+        };
+
+        function simulatePrices() {
+            // Tiny fluctuations (up or down 0.05%)
+            assetPrices.btc *= (1 + (Math.random() - 0.5) * 0.001);
+            assetPrices.eth *= (1 + (Math.random() - 0.5) * 0.001);
+            assetPrices.sol *= (1 + (Math.random() - 0.5) * 0.0015);
+            assetPrices.prl *= (1 + (Math.random() - 0.5) * 0.002);
+
+            document.getElementById('btc-price').innerText = `$${assetPrices.btc.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('eth-price').innerText = `$${assetPrices.eth.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('sol-price').innerText = `$${assetPrices.sol.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('prl-price').innerText = `$${assetPrices.prl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        setInterval(simulatePrices, 4000);
+
+        // Buy Modal Logic
+        const buyModal = document.getElementById('buy-modal');
+        const modalAssetName = document.getElementById('modal-asset-name');
+
+        function triggerBuy(assetName) {
+            modalAssetName.innerText = assetName;
+            buyModal.classList.remove('hidden');
+            setTimeout(() => {
+                buyModal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeModal() {
+            buyModal.classList.add('opacity-0');
+            setTimeout(() => {
+                buyModal.classList.add('hidden');
+            }, 300);
+        }
+
+        function confirmTransaction() {
+            alert('Redirecting to secure transaction gateway...');
+            closeModal();
+        }
+
+        // Handle CTA Submission
+        function handleSubscribe(event) {
+            event.preventDefault();
+            alert('Thank you! You have been added to the priority access queue.');
+            document.getElementById('cta-form').reset();
+        }
+
+        // Footer Dynamic Year
+        document.getElementById('current-year').innerText = new Date().getFullYear();
+    </script>
+</body>
+</html>
